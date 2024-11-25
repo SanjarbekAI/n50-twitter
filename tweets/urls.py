@@ -9,5 +9,7 @@ router = DefaultRouter()
 router.register(r'', views.TweetViewSet)
 
 urlpatterns = [
-    path('child/', views.TweetChildListAPIView.as_view())
+    path('child/', views.TweetChildListAPIView.as_view()),
+    path('comments/', views.TweetCommentViewSet.as_view()),
+    path('comments/<int:pk>/', views.TweetCommentDetailAPIView.as_view()),
 ] + router.urls

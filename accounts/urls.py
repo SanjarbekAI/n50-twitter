@@ -11,4 +11,7 @@ urlpatterns = [
     path('verify/resend/', views.ResendVerificationEmailView.as_view(), name='verify-resend'),
     path('me/', views.ProfileView.as_view(), name='profile'),
 
+    # following
+    path('following/', views.FollowingAPIView.as_view(), name='following')
+
 ]

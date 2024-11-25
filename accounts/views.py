@@ -7,9 +7,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import UserModel
+from accounts.models import UserModel, FollowerModel
 from accounts.serializers import RegisterSerializer, VerificationSerializer, LoginSerializer, ResendCodeSerializer, \
-    UserSerializer
+    UserSerializer, FollowingSerializer
 from accounts.signals import send_verification_email
 
 
@@ -88,3 +88,35 @@ class ProfileView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+class FollowingAPIView(APIView):
+    serializer_class = FollowingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = FollowingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = self.request.user
+        to_user = serializer.validated_data['to_user']
+        response = {"success": True}
+
+        following = FollowerModel.objects.filter(user=user, to_user=to_user)
+        if following.exists():
+            following.delete()
+            response['detail'] = "You have been unfollowed successfully"
+            return Response(response, status=status.HTTP_204_NO_CONTENT)
+
+        FollowerModel.objects.create(user=user, to_user=to_user)
+
+        response['detail'] = "You have been followed successfully"
+        return Response(response, status=status.HTTP_201_CREATED)
+
+    def get(self, request):
+        follow_type = self.request.query_params.get('type')
+        qs = self.request.user.following.all()
+        if follow_type == "followers":
+            qs = self.request.user.followers.all()
+        serializer = FollowingSerializer(qs, many=True, context={'request': self.request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

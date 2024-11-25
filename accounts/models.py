@@ -24,7 +24,7 @@ class VerificationModel(models.Model):
 
 class FollowerModel(models.Model):
     user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name='following')
-    to_user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    to_user = models.ForeignKey(UserModel, on_delete=models.CASCADE, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

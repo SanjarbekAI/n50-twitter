@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from accounts.models import UserModel, VerificationModel
+from accounts.models import UserModel, VerificationModel, FollowerModel
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -113,3 +113,25 @@ class UserSerializer(serializers.ModelSerializer):
         model = UserModel
         exclude = ['password', 'groups', 'user_permissions', 'is_superuser']
         read_only_fields = ['is_active', 'date_joined', 'last_login', 'is_staff']
+
+
+class FollowingSerializer(serializers.ModelSerializer):
+    to_user = serializers.PrimaryKeyRelatedField(queryset=UserModel.objects.all())
+
+    class Meta:
+        model = FollowerModel
+        fields = ['created_at', 'to_user']
+
+    def is_follow_back(self, obj):
+        follow_type = self.context.get('request').query_params.get('type')
+        if follow_type == 'followers':
+            return FollowerModel.objects.filter(user=obj.user, to_user=obj.to_user).exists()
+        return FollowerModel.objects.filter(user=obj.to_user, to_user=obj.user).exists()
+
+    def to_representation(self, instance):
+        data = dict()
+        data['first_name'] = instance.to_user.first_name
+        data['last_name'] = instance.to_user.last_name
+        data['username'] = instance.to_user.username
+        data['follow_back'] = self.is_follow_back(instance)
+        return data
