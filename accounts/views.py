@@ -120,3 +120,5 @@ class FollowingAPIView(APIView):
             qs = self.request.user.followers.all()
         serializer = FollowingSerializer(qs, many=True, context={'request': self.request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+# test
